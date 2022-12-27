@@ -11,11 +11,19 @@ export class User {
 
 	constructor(
 		readonly id: UUID,
-		readonly email: string,
-		readonly password: string,
+		public email: string,
+		private password: string,
 		readonly salt: string,
 	) {}
 
+	static create(params: UserFactoryParams): User {
+		if (!params.salt) {
+			params.salt = User.generateSalt()
+			params.password = User.hashPassword(params.password, params.salt)
+		}
+
+		return new User(UUID.create(params.id), params.email, params.password, params.salt)
+	}
 
 	static generateSalt(): string {
 		const salt = randomBytes(16).toString("hex")
@@ -30,12 +38,10 @@ export class User {
 		return this.password === User.hashPassword(password, this.salt)
 	}
 
-	static create(params: UserFactoryParams): User {
-		if (!params.salt) {
-			params.salt = User.generateSalt()
-			params.password = User.hashPassword(params.password, params.salt)
-		}
-
-		return new User(UUID.create(params.id), params.email, params.password, params.salt)
+	updatePassword(password: string) {
+		this.password = User.hashPassword(password, this.salt)
+	}
+	get getPassword(): string {
+		return this.password
 	}
 }
