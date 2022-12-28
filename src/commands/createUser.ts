@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb"
 import { User } from "../common/entities/user"
 import { UseCase } from "../common/usecase"
 import { UserNotFoundError } from "../common/error/UserNotFoundError"
@@ -18,9 +19,9 @@ export interface UserRepository {
 }
 
 export class CreateUserCommand implements UseCase<CreateUserCommandParams, User> {
-	constructor(private readonly userRepository: UserRepository) {}
+	constructor(private readonly userRepository: UserRepository) { }
 
-	async execute({email, password}: CreateUserCommandParams): Promise<User> {
+	async execute({ email, password }: CreateUserCommandParams): Promise<User> {
 		if (password.length < 6) {
 			throw new InvalidPasswordLengthError()
 		}
@@ -43,7 +44,8 @@ export class CreateUserCommand implements UseCase<CreateUserCommandParams, User>
 
 		const user = User.create({
 			email,
-			password
+			password,
+			id: new ObjectId().toString()
 		})
 
 		await this.userRepository.save(user)

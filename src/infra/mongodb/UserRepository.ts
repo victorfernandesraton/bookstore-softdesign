@@ -1,4 +1,5 @@
 import { Collection, ObjectId } from "mongodb"
+import MUUID from "uuid-mongodb"
 import { User } from "../../common/entities/user"
 import { UserNotFoundError } from "../../common/error/UserNotFoundError"
 
@@ -26,6 +27,7 @@ export class UserRepository {
 	}
 
 	async save(user: User): Promise<void> {
+
 		await this.collection.insertOne({
 			email: user.email,
 			password: user.getPassword,

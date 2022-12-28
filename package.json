@@ -28,6 +28,7 @@
     "dotenv": "^16.0.3",
     "fastify": "^4.10.2",
     "fastify-plugin": "^4.4.0",
-    "mongodb": "^4.13.0"
+    "mongodb": "^4.13.0",
+    "uuid-mongodb": "^2.5.3"
   }
 }
