@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-		"start:dev": "npx ts-node ./app/http/index"
+		"start:dev": "npx ts-node ./src/app/http/index"
   },
   "author": "Victor Raton",
   "license": "MIT",
