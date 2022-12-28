@@ -1,5 +1,6 @@
 import { User } from "../common/entities/user"
 import { UseCase } from "../common/usecase"
+import { UserNotFoundError } from "../common/error/UserNotFoundError"
 import { InvalidMailError } from "./error/InvalidMailError"
 import { InvalidPasswordLengthError } from "./error/IvalidPasswordLengthError"
 import { UserAlreadyExistsError } from "./error/UserAlredyExistError"
@@ -28,10 +29,16 @@ export class CreateUserCommand implements UseCase<CreateUserCommandParams, User>
 			throw new InvalidMailError()
 		}
 
-		const data = await this.userRepository.findByMail(email)
+		try {
 
-		if (data) {
-			throw new UserAlreadyExistsError()
+			const data = await this.userRepository.findByMail(email)
+			if (data) {
+				throw new UserAlreadyExistsError()
+			}
+		} catch (error) {
+			if (!(error instanceof UserNotFoundError)) {
+				throw error
+			}
 		}
 
 		const user = User.create({

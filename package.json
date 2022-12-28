@@ -24,6 +24,7 @@
   "dependencies": {
     "@fastify/auth": "^4.2.0",
     "@fastify/jwt": "^6.5.0",
+    "@fastify/mongodb": "^6.2.0",
     "dotenv": "^16.0.3",
     "fastify": "^4.10.2",
     "fastify-plugin": "^4.4.0",

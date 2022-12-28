@@ -1,12 +1,11 @@
-import { Collection } from "mongodb"
+import { Collection, ObjectId } from "mongodb"
 import { User } from "../../common/entities/user"
-import { UserNotFoundError } from "./error/UserNotFoundError"
+import { UserNotFoundError } from "../../common/error/UserNotFoundError"
 
-type UserDocument = {
+export type UserDocument = {
 	email: string
 	password: string
 	salt: string
-	id: string
 }
 
 export class UserRepository {
@@ -20,7 +19,7 @@ export class UserRepository {
 		})
 
 		if (data) {
-			return User.create(data)
+			return User.create({ ...data, id: data._id.toString() })
 		}
 
 		throw new UserNotFoundError()
@@ -29,7 +28,7 @@ export class UserRepository {
 	async save(user: User): Promise<void> {
 		await this.collection.insertOne({
 			email: user.email,
-			id: user.id.value,
+			_id: new ObjectId(user.id.value),
 			password: user.getPassword,
 			salt: user.salt,
 		})

@@ -13,6 +13,7 @@ services:
       - db
 
   unit-test:
+    env_file: .env
     build:
       context: .
     command: npm test
