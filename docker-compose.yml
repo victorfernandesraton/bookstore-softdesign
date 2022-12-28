@@ -25,7 +25,7 @@ services:
   db:
     image: mongo
     ports:
-      - "27017:27017"
+      - 27017:27017
     container_name: bookstore-softdesign-mongodb
     volumes:
       - ./db/:/data/db
