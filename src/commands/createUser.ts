@@ -3,7 +3,7 @@ import { User } from "../common/entities/user"
 import { UseCase } from "../common/usecase"
 import { UserNotFoundError } from "../common/error/UserNotFoundError"
 import { InvalidMailError } from "./error/InvalidMailError"
-import { InvalidPasswordLengthError } from "./error/IvalidPasswordLengthError"
+import { InvalidPasswordLengthError } from "./error/InvalidPasswordLengthError"
 import { UserAlreadyExistsError } from "./error/UserAlredyExistError"
 
 const EMAIL_REGEX = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$/

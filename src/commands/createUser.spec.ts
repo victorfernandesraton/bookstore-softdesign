@@ -3,7 +3,7 @@ import { any, mock } from "jest-mock-extended"
 import { User } from "../common/entities/user"
 import { CreateUserCommand, UserRepository } from "./createUser"
 import { InvalidMailError } from "./error/InvalidMailError"
-import { InvalidPasswordLengthError } from "./error/IvalidPasswordLengthError"
+import { InvalidPasswordLengthError } from "./error/InvalidPasswordLengthError"
 import { UserAlreadyExistsError } from "./error/UserAlredyExistError"
 
 describe("createUser.ts", () => {

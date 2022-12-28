@@ -1,5 +1,4 @@
-import { Collection, ObjectId } from "mongodb"
-import MUUID from "uuid-mongodb"
+import { Collection } from "mongodb"
 import { User } from "../../common/entities/user"
 import { UserNotFoundError } from "../../common/error/UserNotFoundError"
 
