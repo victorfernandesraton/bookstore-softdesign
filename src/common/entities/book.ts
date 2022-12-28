@@ -1,3 +1,4 @@
+import { InvalidISBNError } from "../error/InvalidISBNError"
 import { UUID } from "../uuid"
 
 type BookFactoryParams = {
@@ -7,7 +8,10 @@ type BookFactoryParams = {
 	author: string
 	publisher: string
 	publisherAt: Date
+	ISBN: string
 }
+
+const ISBN_REGEX = /^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$/
 
 export class Book {
 	constructor(
@@ -16,11 +20,34 @@ export class Book {
 		public author: string,
 		public publisher: string,
 		public publisherAt: Date,
+		private ISBN: string,
 		public description?: string,
 	) {
 	}
 
 	static create(params: BookFactoryParams): Book {
-		return new Book(UUID.create(params.id), params.title, params.author, params.publisher, params.publisherAt, params.description)
+		if (!Book.validateISBN(params.ISBN)) {
+			throw new InvalidISBNError()
+		}
+		return new Book(UUID.create(params.id), params.title, params.author, params.publisher, params.publisherAt,
+			params.ISBN,
+			params.description,
+		)
+	}
+
+	static validateISBN(code: string): boolean {
+		return ISBN_REGEX.test(code)
+	}
+
+	setISBN(code: string) {
+		if (!Book.validateISBN(code)) {
+			throw new InvalidISBNError()
+		} else {
+			this.ISBN = code
+		}
+	}
+
+	get getISBN() {
+		return this.ISBN
 	}
 }

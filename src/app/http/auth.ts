@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyPluginAsync, FastifyRequest } from "fastify"
+import { FastifyInstance, FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify"
 import fp from "fastify-plugin"
 import { CreateUserCommand } from "../../commands/createUser"
 import { InvalidMailError } from "../../commands/error/InvalidMailError"
@@ -27,7 +27,7 @@ const authRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 	const loginUserQuery = new LoginUserQuery(userRepository)
 	const getUserByIdQuery = new GetUserByIdQuery(userRepository)
 
-	fastify.decorate("auth", async (req: FastifyRequest, res: any) => {
+	fastify.decorate("auth", async (req: FastifyRequest, res: FastifyReply) => {
 		try {
 			const basicAuth = req.headers.authorization
 			if (!basicAuth) {
@@ -63,7 +63,7 @@ const authRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
 	fastify.post("/signup", async (req: FastifyRequest<{
 		Body: AuthSignBody
-	}>, res) => {
+	}>, res: FastifyReply) => {
 		const { email, password } = req.body
 
 		try {

@@ -5,7 +5,7 @@ import books from "./books"
 
 declare module "fastify" {
 	interface FastifyInstance {
-		auth: (req: FastifyRequest, res: any) => void
+		auth: (req: FastifyRequest, res: FastifyReply) => void
 	}
 }
 
