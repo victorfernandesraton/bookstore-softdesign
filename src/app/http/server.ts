@@ -1,14 +1,13 @@
 import fastifyJwt from "@fastify/jwt"
 import fastifyMongodb from "@fastify/mongodb"
 import fastify from "fastify"
-
-import auth from "./auth"
 import config from "../config"
 
-export const server = fastify({
+const server = fastify({
 	trustProxy: true,
 	logger: true,
 })
+
 
 server.register(fastifyMongodb, {
 	forceClose: true,
@@ -17,11 +16,7 @@ server.register(fastifyMongodb, {
 
 server.register(fastifyJwt, {
 	secret: "mySecret",
+
 })
 
-server.register(auth)
-
-server.get("/health", (_req, res) => {
-	res.code(200).send("8-)")
-})
-
+export default server

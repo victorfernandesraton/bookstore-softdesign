@@ -6,25 +6,62 @@ import { InvalidPasswordLengthError } from "../../commands/error/InvalidPassword
 import { UserAlreadyExistsError } from "../../commands/error/UserAlredyExistError"
 import { UserNotFoundError } from "../../common/error/UserNotFoundError"
 import { UserDocument, UserRepository } from "../../infra/mongodb/UserRepository"
+import { GetUserByIdQuery } from "../../query/getUserByIdQuery"
 import { LoginUserQuery } from "../../query/loginUser"
-import { UserToJSON } from "../adapter/User"
+import { UserToJSON, UserToJWT } from "../adapter/User"
+import { NotAuthorizedError } from "./error/NotAuthorizedError"
 
 type AuthSignBody = {
 	email: string
 	password: string
 }
 
-const authRoute: FastifyPluginAsync = async (server: FastifyInstance) => {
+const authRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
-	const db = server.mongo.client.db("mydb")
+	const db = fastify.mongo.client.db("mydb")
 	const userCollection = db.collection<UserDocument>("user")
 
 	const userRepository = new UserRepository(userCollection)
 
 	const createUserCommand = new CreateUserCommand(userRepository)
 	const loginUserQuery = new LoginUserQuery(userRepository)
+	const getUserByIdQuery = new GetUserByIdQuery(userRepository)
 
-	server.post("/signup", async (req: FastifyRequest<{
+	fastify.decorate("auth", async (req: FastifyRequest, res: any) => {
+		try {
+			const basicAuth = req.headers.authorization
+			if (!basicAuth) {
+				throw new NotAuthorizedError()
+			}
+			const token = basicAuth.replace("Bearer ", "")
+
+			fastify.jwt.verify(token, {
+				maxAge: 60 * 60 * 24 * 3
+			})
+
+			const decodedToken = fastify.jwt.decode<{
+				id: string,
+				email: string
+			}>(token)
+
+			if (!decodedToken) {
+				throw new NotAuthorizedError()
+			}
+
+			const user = await getUserByIdQuery.execute({ id: decodedToken?.id })
+
+			if (!user) {
+				throw new NotAuthorizedError()
+			}
+
+			req.user = user
+
+		} catch (error) {
+			res.code(401).send()
+		}
+	})
+
+	fastify.post("/signup", async (req: FastifyRequest<{
 		Body: AuthSignBody
 	}>, res) => {
 		const { email, password } = req.body
@@ -36,9 +73,7 @@ const authRoute: FastifyPluginAsync = async (server: FastifyInstance) => {
 				password
 			})
 
-			const token = server.jwt.sign({
-				user
-			})
+			const token = fastify.jwt.sign(UserToJWT(user))
 
 			res.code(201).send({
 				user: UserToJSON(user), token
@@ -58,17 +93,15 @@ const authRoute: FastifyPluginAsync = async (server: FastifyInstance) => {
 		}
 	})
 
-	server.post("/signin", async (req: FastifyRequest<{
+	fastify.post("/signin", async (req: FastifyRequest<{
 		Body: AuthSignBody
 	}>, res) => {
 		const { email, password } = req.body
 
 		try {
-			const user = await loginUserQuery.execute({email, password})
+			const user = await loginUserQuery.execute({ email, password })
 
-			const token = server.jwt.sign({
-				user
-			})
+			const token = fastify.jwt.sign(UserToJWT(user))
 
 			res.code(201).send({
 				user: UserToJSON(user), token

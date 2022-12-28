@@ -1,4 +1,4 @@
-import { Collection } from "mongodb"
+import { Collection, ObjectId } from "mongodb"
 import { User } from "../../common/entities/user"
 import { UserNotFoundError } from "../../common/error/UserNotFoundError"
 
@@ -24,6 +24,19 @@ export class UserRepository {
 
 		throw new UserNotFoundError()
 	}
+
+	async findById(id: string): Promise<User> {
+		const data = await this.collection.findOne({
+			_id: new ObjectId(id)
+		})
+
+		if (data) {
+			return User.create({ ...data, id: data._id.toString() })
+		}
+
+		throw new UserNotFoundError()
+	}
+
 
 	async save(user: User): Promise<void> {
 
