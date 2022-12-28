@@ -7,7 +7,7 @@ const start = async () => {
 		dotenv.config()
 		await server.listen({
 			host: "0.0.0.0",
-			port: 3000,
+			port: process.env.PORT ? parseInt(process.env.PORT, 10) :3000,
 		})
 		console.log("Server started successfully")
 	} catch (err) {

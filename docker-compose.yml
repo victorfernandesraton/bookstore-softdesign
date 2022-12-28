@@ -1,5 +1,5 @@
 services:
-  api-nodejs:
+  api:
     build:
       context: .
     ports:
@@ -10,9 +10,18 @@ services:
       - /usr/app/node_modules
     container_name: bookstore-softdesign-api
     links:
-      - mongo-db
+      - db
 
-  mongo-db:
+  unit-test:
+    build:
+      context: .
+    command: npm test
+    volumes:
+      - .:/usr/app/
+      - /usr/app/node_modules
+    container_name: bookstore-softdesign-unit-test
+
+  db:
     image: mongo
     ports:
       - "27017:27017"
