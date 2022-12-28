@@ -1,7 +1,6 @@
 import fastifyJwt from "@fastify/jwt"
 import fastifyMongodb from "@fastify/mongodb"
 import fastify from "fastify"
-import dotenv from "dotenv"
 
 import auth from "./auth"
 import config from "../config"

@@ -28,7 +28,6 @@ export class UserRepository {
 	async save(user: User): Promise<void> {
 		await this.collection.insertOne({
 			email: user.email,
-			_id: new ObjectId(user.id.value),
 			password: user.getPassword,
 			salt: user.salt,
 		})
