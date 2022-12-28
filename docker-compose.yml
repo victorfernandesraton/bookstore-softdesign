@@ -1,0 +1,21 @@
+services:
+  api-nodejs:
+    build:
+      context: .
+    ports:
+      - 3000:3000
+    command: npm run start:dev
+    volumes:
+      - .:/usr/app/
+      - /usr/app/node_modules
+    container_name: bookstore-softdesign-api
+    links:
+      - mongo-db
+
+  mongo-db:
+    image: mongo
+    ports:
+      - "27017:27017"
+    container_name: bookstore-softdesign-mongodb
+    volumes:
+      - ./db/:/data/db

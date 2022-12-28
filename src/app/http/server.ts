@@ -2,6 +2,7 @@ import fastify from "fastify"
 import fastifyJwt from "@fastify/jwt"
 import auth from "./auth"
 export const server = fastify({
+	trustProxy: true,
 	logger: true,
 })
 
