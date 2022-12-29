@@ -1,5 +1,5 @@
-import { User } from "../common/entities/user"
-import { UseCase } from "../common/usecase"
+import { User } from "../../common/entities/user"
+import { UseCase } from "../../common/usecase"
 
 type GetUserByIdQueryParams = {
 	id: string

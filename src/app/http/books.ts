@@ -1,14 +1,17 @@
 import { FastifyInstance, FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify"
 import fp from "fastify-plugin"
 import { CreateBookCommand } from "../../commands/createBook"
+import { CreateBookCopyCommand } from "../../commands/createBookCopy"
 import { DeleteBookCommand } from "../../commands/deleteBook"
 import { UpdateBookCommand } from "../../commands/updateBook"
 import { BookIsAlredyExistError } from "../../common/error/bookIsAlredyExistError"
 import { BookNotFoundError } from "../../common/error/bookNotFoundError"
 import { InvalidISBNError } from "../../common/error/invalidISBNError"
+import { BookCopyDocument, BookCopyRepository } from "../../infra/mongodb/bookCopyRepository"
 import { BookDocument, BookRepository } from "../../infra/mongodb/bookRepository"
-import { ListAllBooksQuery } from "../../query/listAllBooks"
+import { ListAllBooksQuery } from "../../query/mongodb/listAllBooks"
 import { BookToJSON } from "../adapter/book"
+import { BookCopyToJSON } from "../adapter/bookCopy"
 
 interface ListAllBooksParams {
 	query?: string
@@ -38,16 +41,24 @@ type UpdateBookParams = {
 
 type DeleteBookParams = UpdateBookParams;
 
+type CreateBookCopyParams = UpdateBookParams;
+
 
 const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 	const db = fastify.mongo.client.db("mydb")
+
 	const booksCollection = db.collection<BookDocument>("book")
+	const booksCopyCollection = db.collection<BookCopyDocument>("bookCopy")
+
+	const bookRepository = new BookRepository(booksCollection)
+	const bookCopyRepository = new BookCopyRepository(booksCopyCollection)
 
 	const listAllBooksQuery = new ListAllBooksQuery(booksCollection)
-	const bookRepository = new BookRepository(booksCollection)
 	const createBookCommand = new CreateBookCommand(bookRepository)
 	const updateBookCommand = new UpdateBookCommand(bookRepository)
 	const deleteBookCommand = new DeleteBookCommand(bookRepository)
+	const createBookCopyCommand = new CreateBookCopyCommand(bookRepository, bookCopyRepository)
+
 
 	fastify.get<{
 		Querystring: ListAllBooksParams,
@@ -125,6 +136,27 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 		} catch (error) {
 			switch (true) {
 
+			case error instanceof BookNotFoundError:
+				res.code(404).send(error)
+				return
+
+			default:
+				res.code(500).send(error)
+				return
+			}
+		}
+	})
+
+	fastify.post("/books/:id/copy", async (req: FastifyRequest<{
+		Params: CreateBookCopyParams
+	}>, res: FastifyReply) => {
+		try {
+			const { id } = req.params
+			const bookCopy = await createBookCopyCommand.execute({ bookId: id })
+
+			return res.status(200).send(BookCopyToJSON(bookCopy))
+		} catch (error) {
+			switch (true) {
 			case error instanceof BookNotFoundError:
 				res.code(404).send(error)
 				return

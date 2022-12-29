@@ -1,6 +1,6 @@
-import { User } from "../common/entities/user"
-import { UserNotFoundError } from "../common/error/userNotFoundError"
-import { UseCase } from "../common/usecase"
+import { User } from "../../common/entities/user"
+import { UserNotFoundError } from "../../common/error/userNotFoundError"
+import { UseCase } from "../../common/usecase"
 
 type LoginUserQueryParams = {
 	email: string

@@ -6,8 +6,8 @@ import { InvalidPasswordLengthError } from "../../commands/error/invalidPassword
 import { UserAlreadyExistsError } from "../../commands/error/userAlredyExistError"
 import { UserNotFoundError } from "../../common/error/userNotFoundError"
 import { UserDocument, UserRepository } from "../../infra/mongodb/userRepository"
-import { GetUserByIdQuery } from "../../query/getUserByIdQuery"
-import { LoginUserQuery } from "../../query/loginUser"
+import { GetUserByIdQuery } from "../../query/mongodb/getUserByIdQuery"
+import { LoginUserQuery } from "../../query/mongodb/loginUser"
 import { UserToJSON, UserToJWT } from "../adapter/user"
 import { NotAuthorizedError } from "./error/notAuthorizedError"
 

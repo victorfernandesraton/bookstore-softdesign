@@ -1,8 +1,8 @@
 import { Collection, Filter } from "mongodb"
-import { Book } from "../common/entities/book"
-import { Paginated } from "../common/paginated"
-import { UseCase } from "../common/usecase"
-import { BookDocument } from "../infra/mongodb/bookRepository"
+import { Book } from "../../common/entities/book"
+import { Paginated } from "../../common/paginated"
+import { UseCase } from "../../common/usecase"
+import { BookDocument } from "../../infra/mongodb/bookRepository"
 
 type ListAllBooksQueryParams = {
 	query?: string
