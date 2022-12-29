@@ -9,6 +9,7 @@ import { BookNotFoundError } from "../../common/error/bookNotFoundError"
 import { InvalidISBNError } from "../../common/error/invalidISBNError"
 import { BookCopyDocument, BookCopyRepository } from "../../infra/mongodb/bookCopyRepository"
 import { BookDocument, BookRepository } from "../../infra/mongodb/bookRepository"
+import { GetOneBookInfoQuery } from "../../query/mongodb/getBookInfo"
 import { ListAllBooksQuery } from "../../query/mongodb/listAllBooks"
 import { BookToJSON } from "../adapter/book"
 import { BookCopyToJSON } from "../adapter/bookCopy"
@@ -43,6 +44,8 @@ type DeleteBookParams = UpdateBookParams;
 
 type CreateBookCopyParams = UpdateBookParams;
 
+type GetBookInfoParams = UpdateBookParams;
+
 
 const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 	const db = fastify.mongo.client.db("mydb")
@@ -54,6 +57,7 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 	const bookCopyRepository = new BookCopyRepository(booksCopyCollection)
 
 	const listAllBooksQuery = new ListAllBooksQuery(booksCollection)
+	const getOneBookInfoQuery = new GetOneBookInfoQuery(booksCollection)
 	const createBookCommand = new CreateBookCommand(bookRepository)
 	const updateBookCommand = new UpdateBookCommand(bookRepository)
 	const deleteBookCommand = new DeleteBookCommand(bookRepository)
@@ -99,6 +103,30 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 			}
 		}
 
+	})
+
+	fastify.get("/books/:id", async (req: FastifyRequest<{
+		Params: GetBookInfoParams
+	}>, res: FastifyReply) => {
+		try {
+			const { id } = req.params
+			const bookInfo = await getOneBookInfoQuery.execute({ id })
+
+			return res.status(200).send({
+				book: BookToJSON(bookInfo.book),
+				copies: bookInfo.copies.map(BookCopyToJSON)
+			})
+		} catch (error) {
+			switch (true) {
+			case error instanceof BookNotFoundError:
+				res.code(404).send(error)
+				return
+
+			default:
+				res.code(500).send(error)
+				return
+			}
+		}
 	})
 
 	fastify.put("/books/:id", async (req: FastifyRequest<{
