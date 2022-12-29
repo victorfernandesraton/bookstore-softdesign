@@ -23,7 +23,9 @@ export class ListAllBooksQuery implements UseCase<ListAllBooksQueryParams, Pagin
 
 
 		const fields = ["title", "description", "ISBN", "publisher", "author"]
-		let match: Filter<BookDocument> = {}
+		let match: Filter<BookDocument> = {
+			status: {"$ne": 0}
+		}
 
 		if (query) {
 			match = {
