@@ -1,10 +1,10 @@
 import { ObjectId } from "mongodb"
 import { User } from "../common/entities/user"
 import { UseCase } from "../common/usecase"
-import { UserNotFoundError } from "../common/error/UserNotFoundError"
-import { InvalidMailError } from "./error/InvalidMailError"
-import { InvalidPasswordLengthError } from "./error/InvalidPasswordLengthError"
-import { UserAlreadyExistsError } from "./error/UserAlredyExistError"
+import { UserNotFoundError } from "../common/error/userNotFoundError"
+import { InvalidMailError } from "./error/invalidMailError"
+import { InvalidPasswordLengthError } from "./error/invalidPasswordLengthError"
+import { UserAlreadyExistsError } from "./error/userAlredyExistError"
 
 const EMAIL_REGEX = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$/
 

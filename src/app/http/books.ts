@@ -1,11 +1,11 @@
 import { FastifyInstance, FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify"
 import fp from "fastify-plugin"
 import { CreateBookCommand } from "../../commands/createBook"
-import { BookIsAlredyExistError } from "../../common/error/BookIsAlredyExistError"
-import { InvalidISBNError } from "../../common/error/InvalidISBNError"
+import { BookIsAlredyExistError } from "../../common/error/bookIsAlredyExistError"
+import { InvalidISBNError } from "../../common/error/invalidISBNError"
 import { BookDocument, BookRepository } from "../../infra/mongodb/bookRepository"
 import { ListAllBooksQuery } from "../../query/listAllBooks"
-import { BookToJSON } from "../adapter/Book"
+import { BookToJSON } from "../adapter/book"
 
 interface ListAllBooksParams {
 	query?: string

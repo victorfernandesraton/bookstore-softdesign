@@ -1,4 +1,4 @@
-import { InvalidISBNError } from "../error/InvalidISBNError"
+import { InvalidISBNError } from "../error/invalidISBNError"
 import { UUID } from "../uuid"
 
 type BookFactoryParams = {
@@ -9,6 +9,14 @@ type BookFactoryParams = {
 	publisher: string
 	publisherAt: Date
 	ISBN: string
+}
+
+type BookUpdateParams = {
+	title?: string
+	description?: string
+	author?: string
+	publisher?: string
+	publisherAt?: Date
 }
 
 const ISBN_REGEX = /^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$/
@@ -44,6 +52,24 @@ export class Book {
 			throw new InvalidISBNError()
 		} else {
 			this.ISBN = code
+		}
+	}
+
+	update(params: BookUpdateParams) {
+		if (params.title) {
+			this.title = params.title
+		}
+		if (params.author) {
+			this.author = params.author
+		}
+		if (params.description) {
+			this.description = params.description
+		}
+		if (params.publisher) {
+			this.publisher = params.publisher
+		}
+		if (params.publisherAt) {
+			this.publisherAt = params.publisherAt
 		}
 	}
 

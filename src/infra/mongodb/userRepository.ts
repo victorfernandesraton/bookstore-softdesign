@@ -1,6 +1,6 @@
 import { Collection, ObjectId } from "mongodb"
 import { User } from "../../common/entities/user"
-import { UserNotFoundError } from "../../common/error/UserNotFoundError"
+import { UserNotFoundError } from "../../common/error/userNotFoundError"
 
 export type UserDocument = {
 	email: string

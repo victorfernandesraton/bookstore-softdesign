@@ -2,9 +2,9 @@ import { describe, it, expect } from "@jest/globals"
 import { any, mock } from "jest-mock-extended"
 import { User } from "../common/entities/user"
 import { CreateUserCommand, UserRepository } from "./createUser"
-import { InvalidMailError } from "./error/InvalidMailError"
-import { InvalidPasswordLengthError } from "./error/InvalidPasswordLengthError"
-import { UserAlreadyExistsError } from "./error/UserAlredyExistError"
+import { InvalidMailError } from "./error/invalidMailError"
+import { InvalidPasswordLengthError } from "./error/invalidPasswordLengthError"
+import { UserAlreadyExistsError } from "./error/userAlredyExistError"
 
 describe("createUser.ts", () => {
 	const userRepositoryMock = mock<UserRepository>()

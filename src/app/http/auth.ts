@@ -1,15 +1,15 @@
 import { FastifyInstance, FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify"
 import fp from "fastify-plugin"
 import { CreateUserCommand } from "../../commands/createUser"
-import { InvalidMailError } from "../../commands/error/InvalidMailError"
-import { InvalidPasswordLengthError } from "../../commands/error/InvalidPasswordLengthError"
-import { UserAlreadyExistsError } from "../../commands/error/UserAlredyExistError"
-import { UserNotFoundError } from "../../common/error/UserNotFoundError"
-import { UserDocument, UserRepository } from "../../infra/mongodb/UserRepository"
+import { InvalidMailError } from "../../commands/error/invalidMailError"
+import { InvalidPasswordLengthError } from "../../commands/error/invalidPasswordLengthError"
+import { UserAlreadyExistsError } from "../../commands/error/userAlredyExistError"
+import { UserNotFoundError } from "../../common/error/userNotFoundError"
+import { UserDocument, UserRepository } from "../../infra/mongodb/userRepository"
 import { GetUserByIdQuery } from "../../query/getUserByIdQuery"
 import { LoginUserQuery } from "../../query/loginUser"
-import { UserToJSON, UserToJWT } from "../adapter/User"
-import { NotAuthorizedError } from "./error/NotAuthorizedError"
+import { UserToJSON, UserToJWT } from "../adapter/user"
+import { NotAuthorizedError } from "./error/notAuthorizedError"
 
 type AuthSignBody = {
 	email: string

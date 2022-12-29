@@ -1,11 +1,11 @@
 import { describe, it, expect } from "@jest/globals"
 import { any, mock } from "jest-mock-extended"
 import { Book } from "../common/entities/book"
-import { BookIsAlredyExistError } from "../common/error/BookIsAlredyExistError"
-import { InvalidISBNError } from "../common/error/InvalidISBNError"
+import { BookIsAlredyExistError } from "../common/error/bookIsAlredyExistError"
+import { InvalidISBNError } from "../common/error/invalidISBNError"
 import { BookRepository, CreateBookCommand } from "./createBook"
 
-describe("createBookCommand", () => {
+describe("createBook.ts", () => {
 	const bookRepository = mock<BookRepository>()
 	const stub = new CreateBookCommand(bookRepository)
 

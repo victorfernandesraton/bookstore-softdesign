@@ -1,5 +1,5 @@
 import { it, describe, expect } from "@jest/globals"
-import { InvalidISBNError } from "../error/InvalidISBNError"
+import { InvalidISBNError } from "../error/invalidISBNError"
 import { Book } from "./book"
 
 describe("book.ts", () => {
@@ -33,6 +33,17 @@ describe("book.ts", () => {
 			expect(() => book.setISBN("yesye")).toThrowError(InvalidISBNError)
 			expect(book.getISBN).toEqual("978-1-56619-909-4")
 			expect(() => book.setISBN("978-1-56619-909-5")).not.toThrowError(InvalidISBNError)
+		})
+
+		it("should be update title", () => {
+			book.update({
+				title: "Changed"
+			})
+			expect(book.title).toEqual("Changed")
+			expect(book.id.isEqualString("book_id")).toBeTruthy()
+			expect(book.publisherAt.getFullYear()).toEqual(2006)
+			expect(book.publisherAt.getMonth()).toEqual(0)
+			expect(book.publisherAt.getDate()).toEqual(24)
 		})
 
 		it("should be invalid SBN", () => {

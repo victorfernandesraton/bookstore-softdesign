@@ -1,4 +1,4 @@
-import { Collection } from "mongodb"
+import { Collection, Filter } from "mongodb"
 import { Book } from "../common/entities/book"
 import { Paginated } from "../common/paginated"
 import { UseCase } from "../common/usecase"
@@ -9,8 +9,6 @@ type ListAllBooksQueryParams = {
 	limit?: number
 	offset?: number
 }
-
-
 
 export class ListAllBooksQuery implements UseCase<ListAllBooksQueryParams, Paginated<Book>> {
 
@@ -25,15 +23,17 @@ export class ListAllBooksQuery implements UseCase<ListAllBooksQueryParams, Pagin
 
 
 		const fields = ["title", "description", "ISBN", "publisher", "author"]
-		const match: { [key: string]: any } = {}
-		if (query) {
-			match["$or"] = fields.map(item => ({
-				[item]: {
-					"$regex": query, "$options": "i"
-				}
-			}))
-		}
+		let match: Filter<BookDocument> = {}
 
+		if (query) {
+			match = {
+				"$or": [fields.map(item => ({
+					[item]: {
+						"$regex": query, "$options": "i"
+					}
+				}))]
+			}
+		}
 
 		const cursor = this.collection.find(match).limit(limit).skip(offset * limit)
 		const [result, total] = await Promise.all([cursor.toArray(), cursor.count()])

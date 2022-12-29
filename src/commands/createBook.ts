@@ -1,7 +1,7 @@
 import { ObjectID } from "bson"
 import { Book } from "../common/entities/book"
-import { BookIsAlredyExistError } from "../common/error/BookIsAlredyExistError"
-import { InvalidISBNError } from "../common/error/InvalidISBNError"
+import { BookIsAlredyExistError } from "../common/error/bookIsAlredyExistError"
+import { InvalidISBNError } from "../common/error/invalidISBNError"
 import { UseCase } from "../common/usecase"
 
 type CreateBookCommandParams = {
