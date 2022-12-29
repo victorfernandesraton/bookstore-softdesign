@@ -15,7 +15,8 @@ export class BookRepository {
 	constructor(private readonly collection: Collection<BookDocument>) { }
 	async findByISBN(code: string): Promise<Book[]> {
 		const books = await this.collection.find({
-			ISBN: code
+			ISBN: code,
+			status: { "$ne": 0 }
 		}).toArray()
 
 		return books.map((book) => Book.create({
@@ -26,7 +27,9 @@ export class BookRepository {
 
 	async findById(id: string): Promise<Book> {
 		const book = await this.collection.findOne({
-			_id: new ObjectId(id)
+			_id: new ObjectId(id),
+			status: { "$ne": 0 }
+
 		})
 
 		if (!book || book.status === 0) {
@@ -56,7 +59,9 @@ export class BookRepository {
 		await this.collection.updateOne({
 			_id: new ObjectId(id)
 		}, {
-			status: 0
+			"$set": {
+				status: 0
+			}
 		})
 	}
 

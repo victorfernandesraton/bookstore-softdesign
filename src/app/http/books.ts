@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify"
 import fp from "fastify-plugin"
 import { CreateBookCommand } from "../../commands/createBook"
+import { DeleteBookCommand } from "../../commands/deleteBook"
 import { UpdateBookCommand } from "../../commands/updateBook"
 import { BookIsAlredyExistError } from "../../common/error/bookIsAlredyExistError"
 import { BookNotFoundError } from "../../common/error/bookNotFoundError"
@@ -35,6 +36,7 @@ type UpdateBookParams = {
 	id: string
 }
 
+type DeleteBookParams = UpdateBookParams;
 
 
 const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
@@ -45,6 +47,7 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 	const bookRepository = new BookRepository(booksCollection)
 	const createBookCommand = new CreateBookCommand(bookRepository)
 	const updateBookCommand = new UpdateBookCommand(bookRepository)
+	const deleteBookCommand = new DeleteBookCommand(bookRepository)
 
 	fastify.get<{
 		Querystring: ListAllBooksParams,
@@ -95,7 +98,7 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 			const { id } = req.params
 			const book = await updateBookCommand.execute({ ...req.body, id })
 
-			return res.status(201).send(BookToJSON(book))
+			return res.status(200).send(BookToJSON(book))
 		} catch (error) {
 			switch (true) {
 			case error instanceof InvalidISBNError:
@@ -110,7 +113,27 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 				return
 			}
 		}
+	})
+	fastify.delete("/books/:id", async (req: FastifyRequest<{
+		Params: DeleteBookParams
+	}>, res: FastifyReply) => {
+		try {
+			const { id } = req.params
+			await deleteBookCommand.execute({ id })
 
+			return res.status(200).send()
+		} catch (error) {
+			switch (true) {
+
+			case error instanceof BookNotFoundError:
+				res.code(404).send(error)
+				return
+
+			default:
+				res.code(500).send(error)
+				return
+			}
+		}
 	})
 }
 
