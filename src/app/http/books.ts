@@ -79,7 +79,7 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
 	const createBookCommand = new CreateBookCommand(bookRepository)
 	const updateBookCommand = new UpdateBookCommand(bookRepository)
-	const deleteBookCommand = new DeleteBookCommand(bookRepository)
+	const deleteBookCommand = new DeleteBookCommand(bookRepository, bookCopyRepository)
 	const createBookCopyCommand = new CreateBookCopyCommand(bookRepository, bookCopyRepository)
 	const borrowBookCopyCommand = new BorrowBookCopyCommand(userRepository, bookRepository, bookCopyRepository)
 	const unborrowBookCopyCommand = new UnborrowBookCopyCommand(userRepository, bookCopyRepository)

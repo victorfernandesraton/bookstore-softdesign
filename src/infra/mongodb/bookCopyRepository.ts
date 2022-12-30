@@ -20,6 +20,22 @@ export class BookCopyRepository {
 		})
 	}
 
+	async findInBorrowByBook(bookId: string): Promise<BookCopy[]> {
+		const data = await this.collection.find({
+			bookId: new ObjectId(bookId),
+			status: BookCopyStatusEnum.BORROW
+		}).toArray()
+
+		return data.map(bookCopy =>
+			BookCopy.create({
+				...bookCopy,
+				id: new ObjectId(bookCopy._id).toString(),
+				bookId: new ObjectId(bookCopy.bookId).toString(),
+				userId: bookCopy.userId ? new ObjectId(bookCopy.userId).toString() : undefined,
+				status: bookCopy.status
+			}))
+	}
+
 	async findAvaliableCopy(bookId: string): Promise<BookCopy> {
 		const data = await this.collection.findOne({
 			bookId: new ObjectId(bookId),
