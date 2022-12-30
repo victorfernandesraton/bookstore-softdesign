@@ -7,8 +7,7 @@
     "test": "jest",
     "start:dev": "npx ts-node-dev ./src/app/http/index"
   },
-	"types": "./types.d.ts",
-	  "author": "Victor Raton",
+	"author": "Victor Raton",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^18.11.18",
