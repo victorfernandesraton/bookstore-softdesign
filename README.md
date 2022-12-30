@@ -22,8 +22,3 @@ Usando o docker e o docker-compose foi elaborado a estrutura de ci/cd pra rodar 
   ```bash
   docker compose up api --build
   ```
-
-## Requisitos funcionais
-
-- [ ] endpoint para login
-- [ ] rotas privadas
