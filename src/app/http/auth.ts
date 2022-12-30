@@ -54,7 +54,10 @@ const authRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 				throw new NotAuthorizedError()
 			}
 
-			req.user = user
+			req.user = JSON.stringify({
+				id: user.id.value,
+				email: user.email
+			})
 
 		} catch (error) {
 			res.code(401).send()
@@ -82,13 +85,13 @@ const authRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 			switch (true) {
 			case error instanceof InvalidPasswordLengthError:
 			case error instanceof InvalidMailError:
-				res.code(400).send(error)
-				throw error
+				res.code(400).send({error})
+				return
 			case error instanceof UserAlreadyExistsError:
 				res.code(409)
-				throw error
+				return
 			default:
-				res.code(500).send(error)
+				res.code(500).send({error})
 			}
 		}
 	})

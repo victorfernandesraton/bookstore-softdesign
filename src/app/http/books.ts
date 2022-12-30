@@ -1,14 +1,18 @@
 import { FastifyInstance, FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify"
 import fp from "fastify-plugin"
+import { BorrowBookCopyCommand } from "../../commands/borrowBookCopy"
 import { CreateBookCommand } from "../../commands/createBook"
 import { CreateBookCopyCommand } from "../../commands/createBookCopy"
 import { DeleteBookCommand } from "../../commands/deleteBook"
 import { UpdateBookCommand } from "../../commands/updateBook"
 import { BookIsAlredyExistError } from "../../common/error/bookIsAlredyExistError"
+import { BookNotAvaliableToBorrowError } from "../../common/error/bookNotAvaliableToBorrowError"
 import { BookNotFoundError } from "../../common/error/bookNotFoundError"
 import { InvalidISBNError } from "../../common/error/invalidISBNError"
+import { UserNotFoundError } from "../../common/error/userNotFoundError"
 import { BookCopyDocument, BookCopyRepository } from "../../infra/mongodb/bookCopyRepository"
 import { BookDocument, BookRepository } from "../../infra/mongodb/bookRepository"
+import { UserDocument, UserRepository } from "../../infra/mongodb/userRepository"
 import { GetOneBookInfoQuery } from "../../query/mongodb/getBookInfo"
 import { ListAllBooksQuery } from "../../query/mongodb/listAllBooks"
 import { BookToJSON } from "../adapter/book"
@@ -51,11 +55,14 @@ type CreateBorrowBookParams = UpdateBookParams;
 const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 	const db = fastify.mongo.client.db("mydb")
 
+	const userCollection = db.collection<UserDocument>("user")
 	const booksCollection = db.collection<BookDocument>("book")
 	const booksCopyCollection = db.collection<BookCopyDocument>("bookCopy")
 
+	const userRepository = new UserRepository(userCollection)
 	const bookRepository = new BookRepository(booksCollection)
 	const bookCopyRepository = new BookCopyRepository(booksCopyCollection)
+
 
 	const listAllBooksQuery = new ListAllBooksQuery(booksCollection)
 	const getOneBookInfoQuery = new GetOneBookInfoQuery(booksCollection)
@@ -63,6 +70,7 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 	const updateBookCommand = new UpdateBookCommand(bookRepository)
 	const deleteBookCommand = new DeleteBookCommand(bookRepository)
 	const createBookCopyCommand = new CreateBookCopyCommand(bookRepository, bookCopyRepository)
+	const borrowBookCopyCommand = new BorrowBookCopyCommand(userRepository, bookRepository, bookCopyRepository)
 
 	fastify.addHook("preHandler", fastify.auth)
 
@@ -89,14 +97,14 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 		} catch (error) {
 			switch (true) {
 			case error instanceof InvalidISBNError:
-				res.code(412).send(error)
+				res.code(412).send({error})
 				return
 			case error instanceof BookIsAlredyExistError:
-				res.code(409).send(error)
+				res.code(409).send({error})
 				return
 
 			default:
-				res.code(500).send(error)
+				res.code(500).send({error})
 				return
 			}
 		}
@@ -117,11 +125,11 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 		} catch (error) {
 			switch (true) {
 			case error instanceof BookNotFoundError:
-				res.code(404).send(error)
+				res.code(404).send({error})
 				return
 
 			default:
-				res.code(500).send(error)
+				res.code(500).send({error})
 				return
 			}
 		}
@@ -139,14 +147,14 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 		} catch (error) {
 			switch (true) {
 			case error instanceof InvalidISBNError:
-				res.code(412).send(error)
+				res.code(412).send({error})
 				return
 			case error instanceof BookNotFoundError:
-				res.code(404).send(error)
+				res.code(404).send({error})
 				return
 
 			default:
-				res.code(500).send(error)
+				res.code(500).send({error})
 				return
 			}
 		}
@@ -164,11 +172,11 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 			switch (true) {
 
 			case error instanceof BookNotFoundError:
-				res.code(404).send(error)
+				res.code(404).send({error})
 				return
 
 			default:
-				res.code(500).send(error)
+				res.code(500).send({error})
 				return
 			}
 		}
@@ -185,35 +193,44 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 		} catch (error) {
 			switch (true) {
 			case error instanceof BookNotFoundError:
-				res.code(404).send(error)
+				res.code(404).send({error})
 				return
 
 			default:
-				res.code(500).send(error)
+				res.code(500).send({error})
 				return
 			}
 		}
 	})
 	fastify.post("/books/:id/borrow", async (req: FastifyRequest<{
-		Params: CreateBorrowBookParams
+		Params: CreateBorrowBookParams,
+		user: { id: string, email: string }
 	}>, res: FastifyReply) => {
 		try {
 			const { id } = req.params
+			const user = JSON.parse(req.user.toString())
 
-			console.log(req.user)
+			const response = await borrowBookCopyCommand.execute({
+				bookId: id,
+				userId: user.id
+			})
 
-			res.code(201).send()
-			// const bookCopy = await createBookCopyCommand.execute({ bookId: id })
-
-			// return res.status(200).send(BookCopyToJSON(bookCopy))
+			res.code(201).send({
+				book: BookToJSON(response.book),
+				copy: BookCopyToJSON(response.copy)
+			})
 		} catch (error) {
 			switch (true) {
+			case error instanceof UserNotFoundError:
 			case error instanceof BookNotFoundError:
-				res.code(404).send(error)
+				res.code(404).send({error})
 				return
 
+			case error instanceof BookNotAvaliableToBorrowError:
+				res.code(409).send({error})
+				return
 			default:
-				res.code(500).send(error)
+				res.code(500).send({error})
 				return
 			}
 		}

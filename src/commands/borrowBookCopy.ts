@@ -30,7 +30,6 @@ export interface BookCopyRepository {
 }
 
 export class BorrowBookCopyCommand implements UseCase<BorrowBookCopyCommandParams, BorrowBookCopyCommandResponse> {
-
 	constructor(
 		private readonly userRepository: UserRepository,
 		private readonly bookRepository: BookRepository,

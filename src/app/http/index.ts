@@ -1,7 +1,7 @@
-import server from "./server"
 import config from "../config"
 import auth from "./auth"
 import books from "./books"
+import server from "./server"
 
 declare module "fastify" {
 	interface FastifyInstance {
