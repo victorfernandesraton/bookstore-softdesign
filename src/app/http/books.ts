@@ -7,6 +7,8 @@ import { DeleteBookCommand } from "../../commands/deleteBook"
 import { UserNotAllowedToUnborrowBookCopyError } from "../../commands/error/userNotAllowedToUnborrowBookCopyError"
 import { UnborrowBookCopyCommand } from "../../commands/unborrowBookCopy"
 import { UpdateBookCommand } from "../../commands/updateBook"
+import { Book } from "../../common/entities/book"
+import { BookCopy } from "../../common/entities/bookCopy"
 import { BookCopyNotFoundError } from "../../common/error/bookCopyNotFoundError"
 import { BookIsAlredyExistError } from "../../common/error/bookIsAlredyExistError"
 import { BookNotAvaliableToBorrowError } from "../../common/error/bookNotAvaliableToBorrowError"
@@ -17,9 +19,11 @@ import { BookCopyDocument, BookCopyRepository } from "../../infra/mongodb/bookCo
 import { BookDocument, BookRepository } from "../../infra/mongodb/bookRepository"
 import { UserDocument, UserRepository } from "../../infra/mongodb/userRepository"
 import { GetOneBookInfoQuery } from "../../query/mongodb/getBookInfo"
+import { GetBooksForUserQuery } from "../../query/mongodb/getBooksForUser"
 import { ListAllBooksQuery } from "../../query/mongodb/listAllBooks"
 import { BookToJSON } from "../adapter/book"
 import { BookCopyToJSON } from "../adapter/bookCopy"
+import { UserToJSON } from "../adapter/user"
 
 type ListAllBooksParams = {
 	query?: string
@@ -55,7 +59,7 @@ type GetBookInfoParams = UpdateBookParams;
 
 type CreateBorrowBookParams = UpdateBookParams;
 
-type UnborrowBookCopyParams = {bookCopyId: string}
+type UnborrowBookCopyParams = { bookCopyId: string }
 
 const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 	const db = fastify.mongo.client.db("mydb")
@@ -71,6 +75,8 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
 	const listAllBooksQuery = new ListAllBooksQuery(booksCollection)
 	const getOneBookInfoQuery = new GetOneBookInfoQuery(booksCollection)
+	const getBooksForUserQuery = new GetBooksForUserQuery(booksCopyCollection, userCollection)
+
 	const createBookCommand = new CreateBookCommand(bookRepository)
 	const updateBookCommand = new UpdateBookCommand(bookRepository)
 	const deleteBookCommand = new DeleteBookCommand(bookRepository)
@@ -103,14 +109,14 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 		} catch (error) {
 			switch (true) {
 			case error instanceof InvalidISBNError:
-				res.code(412).send({error})
+				res.code(412).send({ error })
 				return
 			case error instanceof BookIsAlredyExistError:
-				res.code(409).send({error})
+				res.code(409).send({ error })
 				return
 
 			default:
-				res.code(500).send({error})
+				res.code(500).send({ error })
 				return
 			}
 		}
@@ -131,11 +137,11 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 		} catch (error) {
 			switch (true) {
 			case error instanceof BookNotFoundError:
-				res.code(404).send({error})
+				res.code(404).send({ error })
 				return
 
 			default:
-				res.code(500).send({error})
+				res.code(500).send({ error })
 				return
 			}
 		}
@@ -153,14 +159,14 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 		} catch (error) {
 			switch (true) {
 			case error instanceof InvalidISBNError:
-				res.code(412).send({error})
+				res.code(412).send({ error })
 				return
 			case error instanceof BookNotFoundError:
-				res.code(404).send({error})
+				res.code(404).send({ error })
 				return
 
 			default:
-				res.code(500).send({error})
+				res.code(500).send({ error })
 				return
 			}
 		}
@@ -178,11 +184,11 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 			switch (true) {
 
 			case error instanceof BookNotFoundError:
-				res.code(404).send({error})
+				res.code(404).send({ error })
 				return
 
 			default:
-				res.code(500).send({error})
+				res.code(500).send({ error })
 				return
 			}
 		}
@@ -199,11 +205,11 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 		} catch (error) {
 			switch (true) {
 			case error instanceof BookNotFoundError:
-				res.code(404).send({error})
+				res.code(404).send({ error })
 				return
 
 			default:
-				res.code(500).send({error})
+				res.code(500).send({ error })
 				return
 			}
 		}
@@ -228,14 +234,14 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 			switch (true) {
 			case error instanceof UserNotFoundError:
 			case error instanceof BookNotFoundError:
-				res.code(404).send({error})
+				res.code(404).send({ error })
 				return
 
 			case error instanceof BookNotAvaliableToBorrowError:
-				res.code(409).send({error})
+				res.code(409).send({ error })
 				return
 			default:
-				res.code(500).send({error})
+				res.code(500).send({ error })
 				return
 			}
 		}
@@ -258,14 +264,60 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 			switch (true) {
 			case error instanceof UserNotFoundError:
 			case error instanceof BookCopyNotFoundError:
-				res.code(404).send({error})
+				res.code(404).send({ error })
 				return
 
 			case error instanceof UserNotAllowedToUnborrowBookCopyError:
-				res.code(412).send({error})
+				res.code(412).send({ error })
 				return
 			default:
-				res.code(500).send({error})
+				res.code(500).send({ error })
+				return
+			}
+		}
+	})
+
+	fastify.get("/books/me", async (req: FastifyRequest, res: FastifyReply) => {
+		try {
+			const user = JSON.parse(req.user.toString())
+
+			const response = await getBooksForUserQuery.execute({
+				userId: user.id,
+			})
+
+			const userResponse = UserToJSON(response.user)
+
+			const copyResponse = response.copies.map(item => ({
+				copy: BookCopyToJSON(BookCopy.create({
+					bookId: item.bookId.toString(),
+					id: item._id.toString(),
+					status: item.status,
+					userId: item.userId ? item.userId.toString() : undefined
+				})),
+				book: item.book.map(book => BookToJSON(Book.create({
+					id: book._id,
+					ISBN: book.ISBN,
+					description: book.description ?? undefined,
+					author: book.author,
+					publisher: book.publisher,
+					publisherAt: book.publisherAt,
+					title: book.title
+				})))[0]
+			}))
+
+			res.code(200).send({
+				user: userResponse,
+				copies: copyResponse
+			})
+		} catch (error) {
+			console.log(error)
+			switch (true) {
+			case error instanceof UserNotFoundError:
+				res.code(404).send({ error })
+				return
+
+			default:
+				res.code(500).send({ error })
 				return
 			}
 		}
