@@ -9,6 +9,9 @@ export default {
 	},
 	server: {
 		host: process.env.HOST,
-		port: process.env.PORT ? parseInt(process.env.PORT, 10) :3000
+		port: process.env.PORT ? parseInt(process.env.PORT, 10) :3000,
+		jwt: {
+			secret: process.env.JWT_SECRET
+		}
 	}
 }

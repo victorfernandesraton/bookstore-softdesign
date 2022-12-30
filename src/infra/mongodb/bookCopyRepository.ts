@@ -1,5 +1,6 @@
 import { Collection, ObjectId } from "mongodb"
 import { BookCopy, BookCopyStatusEnum } from "../../common/entities/bookCopy"
+import { BookCopyNotFoundError } from "../../common/error/bookCopyNotFoundError"
 import { BookNotAvaliableToBorrowError } from "../../common/error/bookNotAvaliableToBorrowError"
 
 export type BookCopyDocument = {
@@ -27,6 +28,25 @@ export class BookCopyRepository {
 
 		if (!data) {
 			throw new BookNotAvaliableToBorrowError()
+		}
+
+		return BookCopy.create({
+			...data,
+			id: new ObjectId(data._id).toString(),
+			bookId: new ObjectId(data.bookId).toString(),
+			userId: data.userId ? new ObjectId(data.userId).toString() : undefined,
+			status: data.status
+		})
+	}
+
+	async findById(id: string): Promise<BookCopy> {
+		console.log(id)
+		const data = await this.collection.findOne({
+			_id: new ObjectId(id),
+		})
+
+		if (!data) {
+			throw new BookCopyNotFoundError()
 		}
 
 		return BookCopy.create({

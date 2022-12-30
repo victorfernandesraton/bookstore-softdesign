@@ -15,8 +15,7 @@ server.register(fastifyMongodb, {
 })
 
 server.register(fastifyJwt, {
-	secret: "mySecret",
-
+	secret: config.server.jwt.secret ?? "",
 })
 
 export default server

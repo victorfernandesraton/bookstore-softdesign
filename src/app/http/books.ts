@@ -4,7 +4,10 @@ import { BorrowBookCopyCommand } from "../../commands/borrowBookCopy"
 import { CreateBookCommand } from "../../commands/createBook"
 import { CreateBookCopyCommand } from "../../commands/createBookCopy"
 import { DeleteBookCommand } from "../../commands/deleteBook"
+import { UserNotAllowedToUnborrowBookCopyError } from "../../commands/error/userNotAllowedToUnborrowBookCopyError"
+import { UnborrowBookCopyCommand } from "../../commands/unborrowBookCopy"
 import { UpdateBookCommand } from "../../commands/updateBook"
+import { BookCopyNotFoundError } from "../../common/error/bookCopyNotFoundError"
 import { BookIsAlredyExistError } from "../../common/error/bookIsAlredyExistError"
 import { BookNotAvaliableToBorrowError } from "../../common/error/bookNotAvaliableToBorrowError"
 import { BookNotFoundError } from "../../common/error/bookNotFoundError"
@@ -52,6 +55,8 @@ type GetBookInfoParams = UpdateBookParams;
 
 type CreateBorrowBookParams = UpdateBookParams;
 
+type UnborrowBookCopyParams = {bookCopyId: string}
+
 const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 	const db = fastify.mongo.client.db("mydb")
 
@@ -71,6 +76,7 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 	const deleteBookCommand = new DeleteBookCommand(bookRepository)
 	const createBookCopyCommand = new CreateBookCopyCommand(bookRepository, bookCopyRepository)
 	const borrowBookCopyCommand = new BorrowBookCopyCommand(userRepository, bookRepository, bookCopyRepository)
+	const unborrowBookCopyCommand = new UnborrowBookCopyCommand(userRepository, bookCopyRepository)
 
 	fastify.addHook("preHandler", fastify.auth)
 
@@ -182,7 +188,7 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 		}
 	})
 
-	fastify.post("/books/:id/copy", async (req: FastifyRequest<{
+	fastify.post("/books/copy/:id", async (req: FastifyRequest<{
 		Params: CreateBookCopyParams
 	}>, res: FastifyReply) => {
 		try {
@@ -202,9 +208,8 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 			}
 		}
 	})
-	fastify.post("/books/:id/borrow", async (req: FastifyRequest<{
+	fastify.put("/books/borrow/:id", async (req: FastifyRequest<{
 		Params: CreateBorrowBookParams,
-		user: { id: string, email: string }
 	}>, res: FastifyReply) => {
 		try {
 			const { id } = req.params
@@ -228,6 +233,36 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
 			case error instanceof BookNotAvaliableToBorrowError:
 				res.code(409).send({error})
+				return
+			default:
+				res.code(500).send({error})
+				return
+			}
+		}
+	})
+
+	fastify.put("/books/copy/unborrow/:bookCopyId", async (req: FastifyRequest<{
+		Params: UnborrowBookCopyParams,
+	}>, res: FastifyReply) => {
+		try {
+			const { bookCopyId } = req.params
+			const user = JSON.parse(req.user.toString())
+
+			const response = await unborrowBookCopyCommand.execute({
+				userId: user.id,
+				bookCopyId,
+			})
+
+			res.code(200).send(BookCopyToJSON(response))
+		} catch (error) {
+			switch (true) {
+			case error instanceof UserNotFoundError:
+			case error instanceof BookCopyNotFoundError:
+				res.code(404).send({error})
+				return
+
+			case error instanceof UserNotAllowedToUnborrowBookCopyError:
+				res.code(412).send({error})
 				return
 			default:
 				res.code(500).send({error})
