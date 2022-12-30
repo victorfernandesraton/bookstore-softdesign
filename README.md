@@ -23,6 +23,10 @@ Usando o docker e o docker-compose foi elaborado a estrutura de ci/cd pra rodar 
   docker compose up api --build
   ```
 
+# Modelagem
+
+Para este projeto foi definido um conceito de modelagem referente aos livros de forma que eu tenha o registro de um livro por meio de um ISBN unico, e para cada livro tenha N cópias, assim ppodendo emprestar o mesmo tótulo a N pessoas atravez das cópias
+
 # API Documentation
 
 - [books](#books)
