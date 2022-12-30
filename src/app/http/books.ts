@@ -14,7 +14,7 @@ import { ListAllBooksQuery } from "../../query/mongodb/listAllBooks"
 import { BookToJSON } from "../adapter/book"
 import { BookCopyToJSON } from "../adapter/bookCopy"
 
-interface ListAllBooksParams {
+type ListAllBooksParams = {
 	query?: string
 	limit?: string
 	offset?: string
@@ -46,6 +46,7 @@ type CreateBookCopyParams = UpdateBookParams;
 
 type GetBookInfoParams = UpdateBookParams;
 
+type CreateBorrowBookParams = UpdateBookParams;
 
 const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 	const db = fastify.mongo.client.db("mydb")
@@ -63,14 +64,11 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 	const deleteBookCommand = new DeleteBookCommand(bookRepository)
 	const createBookCopyCommand = new CreateBookCopyCommand(bookRepository, bookCopyRepository)
 
+	fastify.addHook("preHandler", fastify.auth)
 
-	fastify.get<{
+	fastify.get("/books", async (req: FastifyRequest<{
 		Querystring: ListAllBooksParams,
-	}>("/books", {
-		preHandler: [fastify.auth],
-
-	}, async (req, res: FastifyReply) => {
-
+	}>, res: FastifyReply) => {
 		const result = await listAllBooksQuery.execute({
 			...req.query,
 			limit: req.query.limit ? parseInt(req.query.limit) : undefined,
@@ -153,6 +151,7 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 			}
 		}
 	})
+
 	fastify.delete("/books/:id", async (req: FastifyRequest<{
 		Params: DeleteBookParams
 	}>, res: FastifyReply) => {
@@ -183,6 +182,30 @@ const bookRoute: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 			const bookCopy = await createBookCopyCommand.execute({ bookId: id })
 
 			return res.status(200).send(BookCopyToJSON(bookCopy))
+		} catch (error) {
+			switch (true) {
+			case error instanceof BookNotFoundError:
+				res.code(404).send(error)
+				return
+
+			default:
+				res.code(500).send(error)
+				return
+			}
+		}
+	})
+	fastify.post("/books/:id/borrow", async (req: FastifyRequest<{
+		Params: CreateBorrowBookParams
+	}>, res: FastifyReply) => {
+		try {
+			const { id } = req.params
+
+			console.log(req.user)
+
+			res.code(201).send()
+			// const bookCopy = await createBookCopyCommand.execute({ bookId: id })
+
+			// return res.status(200).send(BookCopyToJSON(bookCopy))
 		} catch (error) {
 			switch (true) {
 			case error instanceof BookNotFoundError:
